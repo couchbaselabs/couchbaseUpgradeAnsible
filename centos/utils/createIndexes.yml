@@ -1,0 +1,47 @@
+---
+
+- name: Get a Query node
+  uri:
+    url: http://{{ ansible_host }}:8091/pools/default
+    user: '{{ couchbase_server_admin }}'
+    password: '{{ couchbase_server_password }}'
+    body_format: json
+    return_content: true
+  register: result
+  
+- name: Set query Node ip
+  set_fact: query_node_ip="{{ item.otpNode | replace(\"ns_1@\", '') }}"
+  with_items: '{{ result.json.nodes }}'
+  when: '"n1ql" in item.services'
+  
+- name: Get indexes to create
+  include_vars:
+    file: '{{ indexes_file | default(''../indexes.yml'') }}'
+    name: indexes
+    
+- name: Create Indexes.
+  include: createIndex.yml
+  vars:
+    create_index: '{{ item }}'
+    query_node: '{{ query_node_ip }}'
+  with_items: "{{ indexes.indexes }}"
+  
+- name: Get index status
+  uri:
+    url: http://{{ ansible_host }}:8091/indexStatus
+    method: GET
+    user: '{{ couchbase_server_admin }}'
+    password: '{{ couchbase_server_password }}'
+    force_basic_auth: true
+    return_content: true
+    body_format: json
+  register: indexStatus
+  
+- name: Build indexes
+  include: buildIndex.yml
+  vars:
+    query_node: '{{ query_node_ip }}'
+    bucket_name: '{{ item.bucket }}'
+    index_name: '{{ item.index }}'
+  with_items: '{{ indexStatus.json.indexes }}'
+  when: item.status == "Created"

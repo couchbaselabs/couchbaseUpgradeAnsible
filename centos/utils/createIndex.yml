@@ -1,0 +1,15 @@
+---
+- debug: msg="{{ create_index }}"
+
+- name: Try to create the index with give definition
+  uri:
+    url: http://{{ query_node }}:8093/query/service
+    method: POST
+    user: "{{ couchbase_server_admin }}"
+    password: "{{ couchbase_server_password }}"
+    body: "statement={{ create_index }}"
+  register: result
+
+- name: Sleep for few seconds
+  pause:
+    seconds: 5

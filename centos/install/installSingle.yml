@@ -1,0 +1,19 @@
+---
+# Playbook to install couchbase server on the nodes.
+# node: Node to install couchbase on.
+# VER: Version of the couchbase to install
+# BUILD_NO: Build no of the server to install
+# FLAVOR: Flavor of the couchbase server to install
+- hosts: "{{ node | default('all') }}" 
+  vars:
+    ver_no: "{{VER|default('4.5.0')}}"
+    build_no:  "{{BUILD_NO|default(2601)}}"
+    flavor:  "{{FLAVOR|default('watson')}}"
+    base_url:  http://172.23.120.24/builds/latestbuilds/couchbase-server/{{flavor}}/
+    build_pkg: "couchbase-server-enterprise-{{ver_no}}-{{build_no}}-centos6.x86_64.rpm"
+    url_var: "{{base_url}}/{{build_no}}/{{build_pkg}}"
+    build_url: "{{URL|default(url_var)}}"
+    rpm_path: "/tmp/couchbase.rpm"
+  remote_user: root
+  tasks:
+    - include: installTasks.yml

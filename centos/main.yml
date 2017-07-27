@@ -1,0 +1,71 @@
+---
+- hosts: centos[0]
+  tasks: 
+  - include_vars: "{{ testConstant | default('testConstants.yml') }}"
+    always_run: True
+    changed_when: False
+    run_once: True
+  
+- name: Uninstall servers on all nodes
+  include: install/uninstallSingle.yml
+  vars:
+    start: 0
+    end: "{{ node_init | int -1 }}"
+  
+- name: Install initial version of server on Nodes.
+  include: install/installSingle.yml
+  vars:
+    start: 0
+    end: "{{ node_init | int -1 }}"
+    VER: "{{ initial_version | default('4.5.0') }}"
+    BUILD_NO: "{{ initial_build_no | default(2601) }}"
+    FLAVOR: "{{ initial_flavor | default('watson') }}"
+    
+- name: Initialize the cluster for first use.
+  include: install/clusterinitialize.yml
+  vars:
+    NODES_INIT: "{{ node_init }}"
+
+- name: Create travel-sample-bucket
+  include: utils/initializeBucket.yml
+  vars:
+    NODE: "{{ groups['centos'][0] }}"
+    bucket_name: "travel-sample"
+    bucket_ramsize: 512
+
+- hosts: centos[0]
+  tasks:
+  - name: Create indexes for travel-sample
+    include: utils/createIndexes.yml
+    vars:
+      indexes_file: "{{ index_file | default('../indexes.yml') }}"
+
+  - name: Run loadGen
+    pause: seconds=10
+
+- name: Uninstall CB on swap node
+  include: install/uninstallSingle.yml
+  vars:
+    start: 0
+    end: 0
+    group: "centosupgradenode"
+
+- name: Install upgrade version on Swap node
+  include: install/installSingle.yml
+  vars:
+    start: 0
+    end: 0
+    group: "centosupgradenode"
+    VER: "{{ upgrade_version | default('5.0.0') }}"
+    BUILD_NO: "{{ upgrade_build_no | default(3358) }}"
+    FLAVOR: "{{ upgrade_flavor | default('spock') }}"
+
+- name: Upgrade cluster
+  include: upgrade/onlineUpgradeClusterByFreshInstall.yml
+  vars:
+    node: "centos[0]"
+    start: 0
+    end: "{{ node_init | int - 1}}"
+    ver: "{{ upgrade_version | default('5.0.0') }}"
+    build_no: "{{ upgrade_build_no | default(3358) }}"
+    flavor: "{{ upgrade_flavor | default('spock') }}"

@@ -1,0 +1,7 @@
+---
+# Playbook to uninstall CB on nodes
+# NODE: list of servers to uninstall the nodes on.
+- hosts: "{{ group | default('centos') }}[{{ start | int}}:{{ end | int}}]"
+  remote_user: root
+  tasks:
+  - include: uninstallTasks.yml

@@ -1,0 +1,20 @@
+---
+- hosts: "{{ node }}"
+  vars_files:
+    - ../CouchbaseConstants.yml
+  vars:
+    start: "{{ start }}"
+    end: "{{ end }}"
+    original_swap_node: "{{ hostvars[groups['centosupgradenode'][0]] }}"
+    current_swap_server: "{{ original_swap_node }}"
+  tasks:    
+    - name: Upgrade each node in cluster 
+      include: upgradeSingleNodeByFreshInstall.yml
+      vars:
+        swap_out_node: "{{ hostvars[item] }}"
+        ver: "{{ ver | default('5.0.0') }}"
+        build_no: "{{ build_no | default('3358' }}"
+        flavor: "{{ flavor | default('spock')"
+      with_items: "{{ groups['centos'][start | int:end | int] }}"
+     
+  

@@ -1,0 +1,2 @@
+- name: Get master node
+  set_fact: master_with_port="{{ (ansible_host != current_swap_server.ansible_host) | ternary(ansible_host, swap_out_node.ansible_host) }}:{{ couchbase_server_admin_port }}"

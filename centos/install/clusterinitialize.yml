@@ -1,0 +1,73 @@
+---
+
+# Initialize nodes
+- hosts: "centos[0:{{ NODES_INIT | int -1}}]"
+  vars_files:
+    - ../CouchbaseConstants.yml
+  tasks: 
+    - name: Get major version
+      shell: cat /opt/couchbase/VERSION.txt | cut -d '.' -f1
+      register: cb_major_version
+    
+    - name: Make sure index directory exists
+      file: path={{ couchbase_server_index_path }} state=directory owner=couchbase group=couchbase mode=0770
+
+    - name: Make sure data directory exists
+      file: path={{ couchbase_server_data_path }} state=directory owner=couchbase group=couchbase mode=0770
+
+    - name: Couchbase Server Service
+      service: name=couchbase-server state=started
+    
+    - name: Initialize node
+      shell: >
+        {{ couchbase_server_bin_path }}/couchbase-cli node-init -c {{ ansible_host }}:{{ couchbase_server_admin_port }} \
+         -u={{ couchbase_server_admin }} -p={{ couchbase_server_password }} \
+         --node-init-data-path={{ couchbase_server_data_path }} --node-init-index-path={{ couchbase_server_index_path }}
+      ignore_errors: True
+      
+# Initialize cluster
+- hosts: centos[0]
+  vars_files:
+    - ../CouchbaseConstants.yml
+  vars:
+    master_ip: "{{ ansible_host }}"
+    master_with_port: "{{ master_ip}}:{{ couchbase_server_admin_port }}"
+    
+  tasks:
+    - name: Get major version
+      shell: cat /opt/couchbase/VERSION.txt | cut -d '.' -f1
+      register: cb_major_version
+    
+    - name: Wait for Admin
+      wait_for: "port={{ couchbase_server_admin_port }} delay=2"
+    
+    - name: Initialize cluster
+      shell: >
+        {{ couchbase_server_bin_path }}/couchbase-cli cluster-init -c {{ master_with_port }} \
+        --cluster-username={{ couchbase_server_admin }} \
+        --cluster-password={{ couchbase_server_password }} \ 
+        --cluster-port={{couchbase_server_admin_port}} \
+        --services=data \
+        --cluster-ramsize={{ couchbase_server_ram }}
+      when: cb_major_version['stdout'] == "4"
+      ignore_errors: True
+      
+    - name: Initialize cluster
+      shell: >
+        {{ couchbase_server_bin_path }}/couchbase-cli cluster-init -c {{ master_with_port }} \
+         --cluster-username={{ couchbase_server_admin }} \
+         --cluster-password={{ couchbase_server_password }} \
+         --cluster-port={{couchbase_server_admin_port}} \
+         --services=data \
+         --cluster-ramsize={{ couchbase_server_ram }}
+      when:  cb_major_version['stdout'] == "5"
+      ignore_errors: True
+    
+    - name: Join additional cluster nodes
+      include: ../rebalance/addServers.yml
+      vars: 
+        start: 1
+        end: "{{ NODES_INIT | int}}"
+      
+    - name: Rebalance the cluster
+      include: ../rebalance/rebalance.yml NODE=centos[0]

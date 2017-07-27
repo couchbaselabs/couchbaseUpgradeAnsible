@@ -1,0 +1,16 @@
+[centos]
+server1 ansible_host=172.23.106.30 couchbase_server_node_services=data
+server2 ansible_host=172.23.106.167 couchbase_server_node_services=data
+server3 ansible_host=172.23.106.118 couchbase_server_node_services=data
+server4 ansible_host=172.23.106.237 couchbase_server_node_services=index
+server5 ansible_host=172.23.107.20 couchbase_server_node_services=query
+server6 ansible_host=172.23.107.21
+
+[couchbaseservers:children]
+centos
+
+
+[all:vars]
+ansible_connection=ssh 
+ansible_user=root 
+ansible_ssh_pass=couchbase

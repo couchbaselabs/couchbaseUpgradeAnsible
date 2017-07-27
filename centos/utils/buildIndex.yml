@@ -1,0 +1,16 @@
+---
+- name: Set Build definition if defer build = true and index was created.
+  set_fact: build_definition="BUILD INDEX ON `{{ bucket_name }}`(`{{ index_name }}`) USING GSI"
+  
+- name: Build Index if defer build = true and index was created
+  uri:
+    url: http://{{ query_node }}:8093/query/service
+    method: POST
+    user: "{{ couchbase_server_admin }}"
+    password: "{{ couchbase_server_password }}"
+    body: "statement={{ build_definition }}"
+  register: build_result
+  
+- name: Pause for few seconds after creating index
+  pause:
+    seconds: 5

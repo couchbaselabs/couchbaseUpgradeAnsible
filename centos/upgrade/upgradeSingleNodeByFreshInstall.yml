@@ -1,0 +1,22 @@
+---
+# Parameters required for this file
+# current_swap_server: current swap server
+# swap_out_node: Node to be updated.
+# ver: version of couchbase server
+# build_no: build no of the couchbase server
+# flavor: Couchbase version flavor
+- name: Swap rebalance node
+  include: ../rebalance/swapRebalance.yml
+  
+- name: Uninstall coucbhase
+  include: ../install/uninstallSingle.yml
+  vars:
+    node: "{{ swap_out_node }}"
+
+- name: Install new version of couchbase
+  include: ../install/installSingle.yml
+  vars:
+    node: "{{ swap_out_node }}"
+    VER: "{{ ver }}"
+    BUILD_NO: "{{ build_no }}"
+    FLAVOR: "{{ flavor }}"

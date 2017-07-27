@@ -1,0 +1,29 @@
+---
+#    NODE: node in cluster
+#    bucket_name: Bucket name
+#    bucket_type: Bucket type
+#    bucket_port: Bucket port
+#    bucket_ramsize: Bucket ramsize
+#    bucket_replica: Bucket replicas
+
+- hosts: "{{ NODE }}"
+  vars_files:
+    - ../CouchbaseConstants.yml
+  vars:
+    cluster_detail: "{{ ansible_host }}:{{ couchbase_server_admin_port }}"
+    bucket_name: "{{ Bucket_name | default('default') }}"
+    bucket_type: "{{ Bucket_type | default('couchbase') }}"
+    bucket_port: "{{ Bucket_port | default(11211) }}"
+    bucket_ramsize: "{{ Bucket_ramsize | default(256) }}"
+    bucket_replica: "{{ Bucket_replica | default(1) }}"
+    
+  tasks:
+    - name: Create bucket
+      shell: >
+        {{ couchbase_server_bin_path }}/couchbase-cli bucket-create \
+        -c {{ cluster_detail }} --user={{ couchbase_server_admin }} \
+        --password={{ couchbase_server_password }} --bucket={{ bucket_name }} \
+        --bucket-type={{ bucket_type }} --bucket-port={{ bucket_port }} \
+        --bucket-ramsize={{ bucket_ramsize }} \
+        --bucket-replica={{ bucket_replica }} --wait
+    

@@ -1,0 +1,4 @@
+---
+- hosts: "{{ node | default('all') }}"
+  tasks:
+    - include: uninstallTasks.yml

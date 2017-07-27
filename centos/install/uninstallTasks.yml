@@ -1,0 +1,37 @@
+---
+- name: cleanup old pkg dirs
+  shell: rm /tmp/couchbase-server*rpm* 2>/dev/null
+  ignore_errors: true
+- name: rm locks
+  shell: rm -f /var/lib/rpm/.rpm.lock
+  ignore_errors: true
+- name: stop rpm
+  shell: killall -9 rpm
+  ignore_errors: true
+- name: stop couchbase
+  shell: ps aux | grep 'couchbase' | awk '{print $2}' | xargs kill -s 9
+  ignore_errors: true
+- name: stop memcached
+  shell: ps aux | grep 'memcached' | awk '{print $2}' | xargs kill -s 9
+  ignore_errors: true
+- name: stop epmd
+  shell: ps aux | grep 'epmd' | awk '{print $2}' | xargs kill -s 9
+  ignore_errors: true
+- name: uninstall couchbase
+  yum: name=couchbase-server state=absent
+- name: rm opt dir
+  shell: rm -rf /opt/couchbase
+- name: rm data dir
+  shell: rm -rf /data/*
+- name: stop memcached
+  shell: ps aux | grep 'memcached' | awk '{print $2}' | xargs kill -s 9
+  ignore_errors: true
+- name: stop couchbase
+  shell: ps aux | grep 'couchbase' | awk '{print $2}' | xargs kill -s 9
+  ignore_errors: true
+- name: stop memcached
+  shell: ps aux | grep 'memcached' | awk '{print $2}' | xargs kill -s 9
+  ignore_errors: true
+- name: stop epmd
+  shell: ps aux | grep 'epmd' | awk '{print $2}' | xargs kill -s 9
+  ignore_errors: true

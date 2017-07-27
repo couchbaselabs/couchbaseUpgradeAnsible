@@ -1,0 +1,177 @@
+---
+#- hosts: "{{NODE|default('centos')}}"
+#  vars_files:
+#    - ../CouchbaseConstants.yml
+#  vars: 
+#    start: "{{ START | default(0) }}"
+#    end: "{{END | default(3)}}"
+#  tasks:
+#  - name: Get major version
+#    shell: cat /opt/couchbase/VERSION.txt | cut -d '.' -f1
+#    register: cb_major_version
+#
+#  - debug:
+#      msg: "host ip: {{ ansible_host }}"    
+#  - debug: 
+#      msg: "{{ hostvars[item].ansible_host }}"
+#    with_items: "{{ groups['centos'][start | int:end | int] }}"
+#    #when: '"101" not in hostvars[item].ansible_host'
+#    #when: "{{ hostvars[item].ansible_host }}" | match("10.111.170.101")
+    
+    
+#  - debug:
+#      msg: "{{  hostvars[groups['centos'][item | int]].ansible_host }}"
+#    with_sequence: start={{ start | int }} end={{ end | int}}
+#  - debug:
+#      msg: " {{ NODE }} {{ hostvars[groups[GROUPS | default('centos')][NODE | int]].ansible_host }} "
+     
+- hosts: centos[0]
+  vars_files:
+    - ../CouchbaseConstants.yml
+  vars:
+    remove_nodes: " "
+    old_definition1: "CREATE INDEX `def_airportname` ON `travel-sample`(`airportname`) WITH {  \"defer_build\"=true }"
+#    old_index_name: "def_airportname"
+    next_index_postfix: 1
+#    old_indexer: "{{ hostvars[groups['centos'][1]] }}"
+#    new_indexer: "{{ hostvars[groups['centosupgradenode'][0]] }}"
+    start: 0
+    end: 2
+  tasks:    
+    - debug: msg="{{ hostvars[groups['centos'][1]] }}"
+  
+  
+  
+  
+#    - name: Get master node
+#      set_fact: master_with_port="{{ ansible_host }}:{{ couchbase_server_admin_port }}"
+#    - name: Get servers 
+#      shell: >
+#        {{ couchbase_server_bin_path }}/couchbase-cli server-list -c {{ master_with_port }} \
+#         -u {{ couchbase_server_admin }} -p {{ couchbase_server_password }} | grep -v "{{ master_with_port }}" \
+#         | awk '{print $2}'
+#      register: result
+#    
+#    - set_fact: master_with_port="{{ result.stdout.splitlines()[0] }}"
+#    
+#    - debug: msg="{{ master_with_port }}"
+    
+    
+    
+#     - name: Create indexes for travel-sample
+#       include: ../utils/createIndexes.yml
+#       vars:
+#          indexes_file: "{{ index_file | default('../indexes.yml') }}"
+  
+#    - name: get New Index name
+#      set_fact: 
+#        new_index_name: "{{ old_index_name }}{{next_index_postfix}}"
+#        with_defer_build: "\"defer_build\"=true"
+#           
+#    - debug: msg="{{ old_definition }} {{ with_defer_build }}"
+#    
+#    - name: Get new definition by replacing old index name
+#      set_fact: 
+#        new_definition: "{{ old_definition | replace(old_index_name,new_index_name) }}"
+#    
+#    - debug: msg="{{ new_definition }}"
+#    
+#    - set_fact:
+#        new_definition_without_with: "{{ new_definition | replace(with_defer_build, '') }}"
+#        
+#    - debug: msg="{{ new_definition_without_with }}"
+#    
+#    - set_fact:
+#        new_indexer_host: "{{ new_indexer.ansible_host }}:{{ couchbase_server_admin_port }}"
+#        
+#    - set_fact:
+#        with_host: "\"nodes\": [\"{{ new_indexer_host}}\"]"
+#    
+#    - set_fact:
+#        WITH:
+#          defer_build: "{{ (old_definition | search(with_defer_build)) | ternary(true,false) }}"
+#          nodes: ["{{ new_indexer_host }}"]
+#    
+#    - debug: msg="{{ WITH | to_json }}"
+#    
+#    - set_fact:
+#        with_statement: "WITH { {{ with_host }} }"
+#    
+#    - set_fact:
+#        with_satement_defer_build: "WITH { \"defer_build\":true, {{ with_host }} }"
+#      when: old_definition | search(with_defer_build)
+#    
+#    - set_fact: 
+#        temp: "{{ new_definition_without_with }} WITH {{ WITH | to_json}}"
+#        
+#    - debug: msg="{{ temp }}"
+#    
+#    - set_fact:
+#        new_definition_with_host: "{{ new_definition_without_with }} {{ (old_definition | search(with_defer_build)) | ternary(with_satement_defer_build, with_statement) }}"
+#        
+#    - debug: msg="{{ new_definition_with_host }}"
+#  
+#    - name: Recreate Indexes if indexer node.
+#      include: ../utils/recreateIndexes.yml
+#      vars: 
+#        old_indexer: "{{ hostvars[groups['centos'][1]] }}"
+#        new_indexer: "{{ hostvars[groups['centosupgradenode'][0]] }}"
+  
+#    - name: Set Remove node
+#      set_fact: remove_nodes="{{ REMOVE_SERVERS | join(',') }}"
+#      when: REMOVE_SERVERS is defined 
+#    
+#    - debug: msg="{{ remove_nodes }}"
+#      when: REMOVE_SERVERS is defined 
+#    
+#    - name: get query node
+#      uri:
+#        url: http://10.111.170.101:8091/pools/default
+#        user: "{{ couchbase_server_admin }}"
+#        password: "{{ couchbase_server_password }}"
+#        body_format: json
+#        return_content: yes
+#      register: result
+#      
+#    - debug: msg="{{ result }}"
+#      when:  not result | succeeded
+#    - debug: msg="{{ item.otpNode | replace(\"ns_1@\", '') }}"
+#      with_items: "{{ result.json.nodes }}"
+#      when: '"n1ql" in item.services'
+    
+    
+#    - name: try cbq
+#      uri:
+#        url: http://10.111.170.103:8093/query/service
+#        method: POST
+#        user: "{{ couchbase_server_admin }}"
+#        password: "{{ couchbase_server_password }}"
+#        body: "statement=CREATE INDEX `def_city2` ON `travel-sample`(`city`) USING GSI WITH {\"nodes\": [\"10.111.170.102:8091\"]}"
+#      register: result
+#      ignore_errors: True
+#    
+#    - debug: msg="{{ result }}"
+#      when: result | failed
+#    - debug: msg="{{ result.json.errors[0].msg }}"
+    
+      
+      
+#  - uri:
+#      url: http://10.111.170.102:8091/indexStatus
+#      method: GET
+#      user: "{{ couchbase_server_admin }}"
+#      password: "{{ couchbase_server_password }}"
+#      force_basic_auth: yes
+#      return_content: yes
+#      body_format: json
+#    register: result
+#   
+#  - set_fact: index="{{ result }}"
+#      
+#  - debug:
+#      msg: "{{ item.bucket }} {{ item.definition }} {{ item.index }}"
+#    with_items: "{{ index['json'].indexes }}"
+#    
+#  - debug: msg="not defined"
+#    when: NODE is defined
+#    

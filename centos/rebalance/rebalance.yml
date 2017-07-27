@@ -1,0 +1,36 @@
+---
+
+- name: Get nodes in Cluster when Remove node is same as master
+  shell: >
+    {{ couchbase_server_bin_path }}/couchbase-cli server-list -c {{ master_with_port }} \
+     -u {{ couchbase_server_admin }} -p {{ couchbase_server_password }} | \
+     grep -v "{{ master_with_port }}" | awk '{print $2}'
+  register: server_list
+  when: remove_server is defined and master_with_port | search(remove_server.ansible_host)
+
+- name: Set new master node when remove node is same as master
+  set_fact: master_with_port="{{ server_list.stdout.splitlines()[0] }}"
+  when: remove_server is defined and master_with_port | search(remove_server.ansible_host)
+  
+- name: Rebalance cluster
+  shell: >
+    {{ couchbase_server_bin_path }}/couchbase-cli rebalance -c {{ master_with_port }} \
+    -u {{ couchbase_server_admin }} -p {{ couchbase_server_password }}
+  when: remove_server is not defined
+  ignore_errors: True
+    
+- name: Rebalance cluster
+  shell: >
+    {{ couchbase_server_bin_path }}/couchbase-cli rebalance -c {{ master_with_port }} \
+    -u {{ couchbase_server_admin }} -p {{ couchbase_server_password }} --server-remove={{ remove_server.ansible_host }}
+  when: remove_server is defined
+  ignore_errors: True
+
+- name: Wait till rebalance is complete
+  shell: >
+      {{ couchbase_server_bin_path }}/couchbase-cli rebalance-status -c {{ master_with_port }} \
+      -u {{ couchbase_server_admin }} -p {{ couchbase_server_password }}
+  register: result
+  until: result.stdout.find("notRunning") != -1
+  retries: 500
+  delay: 10

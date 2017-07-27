@@ -1,0 +1,38 @@
+---
+- name: Get a Query node
+  uri:
+    url: http://{{ ansible_host }}:8091/pools/default
+    user: "{{ couchbase_server_admin }}"
+    password: "{{ couchbase_server_password }}"
+    body_format: json
+    return_content: yes
+  register: result
+      
+- name: Set query Node ip
+  set_fact: query_node_ip="{{ item.otpNode | replace(\"ns_1@\", '') }}"
+  with_items: "{{ result.json.nodes }}"
+  when: '"n1ql" in item.services'
+
+- name: Get index status
+  uri:
+    url: http://{{ ansible_host }}:8091/indexStatus
+    method: GET
+    user: "{{ couchbase_server_admin }}"
+    password: "{{ couchbase_server_password }}"
+    force_basic_auth: yes
+    return_content: yes
+    body_format: json
+  register: indexStatus
+  
+- name: Recreate all index in the cluster
+  include: recreateIndex.yml
+  vars:
+    query_node: "{{ query_node_ip }}"
+    old_index_name: "{{ item.index }}"
+    next_index_postfix: 1
+    old_definition: "{{ item.definition }}"
+    bucket_name: "{{ item.bucket }}"
+    #new_indexer: "{{ new_indexer }}"
+  with_items: "{{ indexStatus.json.indexes }}"
+  when: item.hosts[0] | search(old_indexer.ansible_host)
+  

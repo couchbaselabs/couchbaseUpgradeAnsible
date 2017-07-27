@@ -1,0 +1,15 @@
+---
+
+- name: Swap rebalance node
+  include: ../rebalance/swapRebalance.yml
+  vars: 
+    current_swap_server: "{{ current_swap_server }}"
+    swap_out_node: "{{ swap_out_node }}"
+
+- name: Install new version of couchbase
+  include: ../install/upgradePackage.yml
+  vars:
+    NODE: "{{ swap_out_node }}"
+    VER: "{{ ver }}"
+    BUILD_NO: "{{ build_no }}"
+    FLAVOR: "{{ flavor }}"

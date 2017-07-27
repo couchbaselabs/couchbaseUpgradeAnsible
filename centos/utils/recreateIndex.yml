@@ -1,0 +1,68 @@
+---
+- name: get New Index name
+  set_fact: 
+    new_index_name: "{{ old_index_name }}{{next_index_postfix}}"
+    with_defer_build: "\"defer_build\"=true"
+  
+- name: Get new definition by replacing old index name
+  set_fact: 
+    new_definition: "{{ old_definition | replace(old_index_name,new_index_name) }}"
+
+- name: Remove with clause from the new definition
+  set_fact:
+    new_definition_without_with: "{{ new_definition | regex_replace('(WITH {).*(})', '') }}"
+
+- set_fact:
+    new_indexer_host: "{{ new_indexer.ansible_host }}:{{ couchbase_server_admin_port }}"
+
+- set_fact:
+        WITH:
+          defer_build: "{{ (old_definition | search(with_defer_build)) | ternary(true,false) }}"
+          nodes: ["{{ new_indexer_host }}"]
+
+- set_fact:
+    new_definition_with_host: "{{ new_definition_without_with }} WITH {{ WITH | to_json }}"
+    
+- debug: msg="{{ new_definition_with_host }}"
+
+- name: Try to create the index with the new definition
+  uri:
+    url: http://{{ query_node }}:8093/query/service
+    method: POST
+    user: "{{ couchbase_server_admin }}"
+    password: "{{ couchbase_server_password }}"
+    body: "statement={{ new_definition_with_host }}"
+  register: result
+  #ignore_errors: True
+
+#- name: Increment next_index_postfix if index already exists.
+#  set_fact: next_index_postfix="{{next_index_postfix | int + 1}}"
+#  when: result | failed and result.json.error[0].msg | search("already exists.")
+#  
+#- name: Try to recreate Index if index already exists
+#  include: recreateIndex.yml
+#  when: result | failed and result.json.error[0].msg | search("already exists.")
+
+- name: Pause for few seconds after creating index if defer build = true
+  pause:
+    seconds: 5
+  when: result | succeeded and old_definition | search(with_defer_build)
+  
+- name: Set Build definition if defer build = true and index was created.
+  set_fact: build_definition="BUILD INDEX ON `{{ bucket_name }}`(`{{ new_index_name }}`) USING GSI"
+  when: result | succeeded and old_definition | search(with_defer_build)
+  
+- name: Build Index if defer build = true and index was created
+  uri:
+    url: http://{{ query_node }}:8093/query/service
+    method: POST
+    user: "{{ couchbase_server_admin }}"
+    password: "{{ couchbase_server_password }}"
+    body: "statement={{ build_definition }}"
+  register: build_result
+  #ignore_errors: True
+  when: result | succeeded and old_definition | search(with_defer_build)
+  
+- name: Pause for few seconds after creating index
+  pause:
+    seconds: 5

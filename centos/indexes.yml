@@ -1,0 +1,11 @@
+indexes:
+- "CREATE INDEX `def_airportname` ON `travel-sample`(`airportname`) WITH { \"defer_build\":true }"
+- "CREATE INDEX `def_city` ON `travel-sample`(`city`) WITH { \"defer_build\":true }"
+- "CREATE INDEX `def_faa` ON `travel-sample`(`faa`) WITH { \"defer_build\":true }"
+- "CREATE INDEX `def_icao` ON `travel-sample`(`icao`) WITH { \"defer_build\":true }"
+- "CREATE INDEX `def_name_type` ON `travel-sample`(`name`) WHERE (`_type` = \"User\") WITH { \"defer_build\":true }"
+- "CREATE PRIMARY INDEX `def_primary` ON `travel-sample` WITH { \"defer_build\":true }"
+- "CREATE PRIMARY INDEX `def_primary` ON `travel-sample` WITH { \"defer_build\":true }"
+- "CREATE INDEX `def_schedule_utc` ON `travel-sample`(array (`s`.`utc`) for `s` in `schedule` end) WITH { \"defer_build\":true }"
+- "CREATE INDEX `def_sourceairport` ON `travel-sample`(`sourceairport`) WITH { \"defer_build\":true }"
+- "CREATE INDEX `def_type` ON `travel-sample`(`type`) WITH { \"defer_build\":true }"

@@ -1,0 +1,17 @@
+---
+
+- name: task1
+  debug: msg="{{ arg }}"
+
+- name: task2
+  debug: msg="{{ ansible_host }}"
+  
+- name: task3
+  debug: msg="{{ couchbase_server_admin }}"
+  
+- name: task4
+  debug: msg="{{ asd }}"
+  
+- name: task4
+  debug: msg="{{ swap_server }} {{ swap_server.ansible_host }}"
+  

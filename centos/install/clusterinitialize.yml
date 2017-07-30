@@ -47,7 +47,7 @@
         --cluster-username={{ couchbase_server_admin }} \
         --cluster-password={{ couchbase_server_password }} \ 
         --cluster-port={{couchbase_server_admin_port}} \
-        --services=data \
+        --services=data --index-storage-setting={{ couchbase_indexer_type }} \
         --cluster-ramsize={{ couchbase_server_ram }}
       when: cb_major_version['stdout'] == "4"
       ignore_errors: True
@@ -62,6 +62,12 @@
          --cluster-ramsize={{ couchbase_server_ram }}
       when:  cb_major_version['stdout'] == "5"
       ignore_errors: True
+    
+    - name: Wait for Admin
+      wait_for: "port={{ couchbase_server_admin_port }} delay=2"
+    
+    - name: Pause for few seconds
+      pause: seconds=10
     
     - name: Join additional cluster nodes
       include: ../rebalance/addServers.yml

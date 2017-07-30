@@ -1,71 +1,66 @@
----
-- hosts: centos[0]
-  tasks: 
-  - include_vars: "{{ testConstant | default('testConstants.yml') }}"
-    always_run: True
-    changed_when: False
-    run_once: True
-  
 - name: Uninstall servers on all nodes
-  include: install/uninstallSingle.yml
+  include: install/uninstallRange.yml
   vars:
     start: 0
-    end: "{{ node_init | int -1 }}"
+    end: "{{ lookup('ini', 'node_init section=testConstants file=../testConstants.ini') | int -1 }}"
   
 - name: Install initial version of server on Nodes.
-  include: install/installSingle.yml
+  include: install/installRange.yml
   vars:
     start: 0
-    end: "{{ node_init | int -1 }}"
-    VER: "{{ initial_version | default('4.5.0') }}"
-    BUILD_NO: "{{ initial_build_no | default(2601) }}"
-    FLAVOR: "{{ initial_flavor | default('watson') }}"
+    end: "{{ lookup('ini', 'node_init section=testConstants file=../testConstants.ini') | int -1 }}"
+    VER: "{{ lookup('ini', 'initial_version section=testConstants file=../testConstants.ini') | default('4.5.0') }}"
+    BUILD_NO: "{{ lookup('ini', 'initial_build_no section=testConstants file=../testConstants.ini') | default(2601) }}"
+    FLAVOR: "{{ lookup('ini', 'initial_flavor section=testConstants file=../testConstants.ini') | default('watson') }}"
     
 - name: Initialize the cluster for first use.
   include: install/clusterinitialize.yml
   vars:
-    NODES_INIT: "{{ node_init }}"
+    NODES_INIT: "{{ lookup('ini', 'node_init section=testConstants file=../testConstants.ini') }}"
 
 - name: Create travel-sample-bucket
   include: utils/initializeBucket.yml
   vars:
-    NODE: "{{ groups['centos'][0] }}"
+    NODE: "centos[0]"
     bucket_name: "travel-sample"
     bucket_ramsize: 512
 
 - hosts: centos[0]
+  vars_files:
+    - CouchbaseConstants.yml
   tasks:
   - name: Create indexes for travel-sample
     include: utils/createIndexes.yml
-    vars:
-      indexes_file: "{{ index_file | default('../indexes.yml') }}"
 
   - name: Run loadGen
     pause: seconds=10
 
-- name: Uninstall CB on swap node
-  include: install/uninstallSingle.yml
+- hosts: centosupgradenode[0]
   vars:
-    start: 0
-    end: 0
-    group: "centosupgradenode"
+    node: centosupgradenode[0]
+    VER: "{{ lookup('ini', 'upgrade_version section=testConstants file=../testConstants.ini') | default('5.0.0') }}"
+    BUILD_NO: "{{ lookup('ini', 'upgrade_build_no section=testConstants file=../testConstants.ini') | default(3358) }}"
+    FLAVOR: "{{ lookup('ini', 'upgrade_flavor section=testConstants file=../testConstants.ini') | default('spock') }}"
+    ver_no: "{{VER|default('4.5.0')}}"
+    build_no:  "{{BUILD_NO|default(2601)}}"
+    flavor:  "{{FLAVOR|default('watson')}}"
+    base_url:  http://172.23.120.24/builds/latestbuilds/couchbase-server/{{flavor}}/
+    build_pkg: "couchbase-server-enterprise-{{ver_no}}-{{build_no}}-centos6.x86_64.rpm"
+    url_var: "{{base_url}}/{{build_no}}/{{build_pkg}}"
+    build_url: "{{URL|default(url_var)}}"
+    rpm_path: "/tmp/couchbase.rpm"
+  tasks: 
+  - name: Uninstall couchbase on swap node
+    include: install/uninstallTasks.yml
 
-- name: Install upgrade version on Swap node
-  include: install/installSingle.yml
-  vars:
-    start: 0
-    end: 0
-    group: "centosupgradenode"
-    VER: "{{ upgrade_version | default('5.0.0') }}"
-    BUILD_NO: "{{ upgrade_build_no | default(3358) }}"
-    FLAVOR: "{{ upgrade_flavor | default('spock') }}"
+  - name: Install upgrade version on Swap node
+    include: install/installTasks.yml
 
 - name: Upgrade cluster
   include: upgrade/onlineUpgradeClusterByFreshInstall.yml
   vars:
-    node: "centos[0]"
     start: 0
-    end: "{{ node_init | int - 1}}"
-    ver: "{{ upgrade_version | default('5.0.0') }}"
-    build_no: "{{ upgrade_build_no | default(3358) }}"
-    flavor: "{{ upgrade_flavor | default('spock') }}"
+    end: "{{ lookup('ini', 'node_init section=testConstants file=../testConstants.ini') | int - 1}}"
+    VER: "{{ lookup('ini', 'upgrade_version section=testConstants file=../testConstants.ini') | default('5.0.0') }}"
+    BUILD_NO: "{{ lookup('ini', 'upgrade_build_no section=testConstants file=../testConstants.ini') | default(3358) }}"
+    FLAVOR: "{{ lookup('ini', 'upgrade_flavor section=testConstants file=../testConstants.ini') | default('spock') }}"

@@ -1,4 +1,7 @@
 ---
+- name: Get current_swap_server
+  set_fact:
+    current_swap_server: "{{ hostvars['localhost'].current_swap_server }}"
 
 - name: Get master node
   set_fact: master_with_port="{{ (ansible_host != current_swap_server.ansible_host) | ternary(ansible_host, swap_out_node.ansible_host) }}:{{ couchbase_server_admin_port }}"
@@ -9,9 +12,9 @@
     server_add: "{{ current_swap_server }}"
     services: "{{ swap_out_node['couchbase_server_node_services'] }}"
   
-- name: Rebalance cluster if indexer node
+- name: Rebalance cluster if indexer node or query node
   include: rebalance.yml
-  when: swap_out_node['couchbase_server_node_services'] | search("index")
+  when: swap_out_node['couchbase_server_node_services'] | search("index") or swap_out_node['couchbase_server_node_services'] | search('query')
   
 - name: Recreate Indexes if indexer node.
   include: ../utils/recreateIndexes.yml
@@ -27,4 +30,6 @@
     
 - name: Set swapped out node as current swap node
   set_fact: current_swap_server={{ swap_out_node }}
+  delegate_to: 127.0.0.1
+  delegate_facts: True
   

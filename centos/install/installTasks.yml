@@ -9,13 +9,13 @@
   shell: killall -9 rpm
   ignore_errors: true
 - name: stop couchbase
-  shell: ps aux | grep 'couchbase' | awk '{print $2}' | xargs kill -s 9
+  shell: ps aux | grep 'couchbase' | grep -v grep | awk '{print $2}' | xargs kill -9
   ignore_errors: true
 - name: stop memcached
-  shell: ps aux | grep 'memcached' | awk '{print $2}' | xargs kill -s 9
+  shell: ps aux | grep 'memcached' | grep -v grep | awk '{print $2}' | xargs kill -9
   ignore_errors: true
 - name: stop epmd
-  shell: ps aux | grep 'epmd' | awk '{print $2}' | xargs kill -s 9
+  shell: ps aux | grep 'epmd' | grep -v grep | awk '{print $2}' | xargs kill -9
   ignore_errors: true
 - name: uninstall couchbase
   yum: name=couchbase-server state=absent
@@ -24,7 +24,7 @@
 - name: rm data dir
   shell: rm -rf /data/*
 - name: stop memcached
-  shell: ps aux | grep 'memcached' | awk '{print $2}' | xargs kill -s 9
+  shell: ps aux | grep 'memcached' | grep -v grep | awk '{print $2}' | xargs kill -9
   ignore_errors: true
 - debug: msg="Download {{build_url}}"
 - name: download binary

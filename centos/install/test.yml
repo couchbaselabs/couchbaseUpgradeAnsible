@@ -38,7 +38,34 @@
     start: 0
     end: 2
   tasks:    
-    - debug: msg="{{ hostvars[groups['centos'][1]] }}"
+  
+    - set_fact:
+        test_Fact: "Hello"
+      delegate_to: 127.0.0.1
+      delegate_facts: True
+    - debug: msg=" "
+
+- hosts: centos[0:2]
+  serial: 1
+  tasks: 
+    
+    - set_fact:
+        test_Fact: "Hello {{ ansible_host }}"
+      delegate_to: 127.0.0.1
+      delegate_facts: True
+      when: hostvars['localhost'].test_Fact is not defined
+      
+    - debug: msg="{{ hostvars['localhost'].test_Fact }}"
+
+- hosts: centos[0]
+  tasks: 
+    - debug: msg="{{ hostvars['localhost'].test_Fact }}"
+    
+    
+    
+    #- debug: msg="{{ lookup('ini', 'node_inita section=testConstants file=../testConstants.ini') }}"
+    
+    #- debug: msg="{{ hostvars }}"
   
   
   

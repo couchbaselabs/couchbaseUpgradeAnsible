@@ -9,14 +9,7 @@
   include: ../rebalance/swapRebalance.yml
   
 - name: Uninstall coucbhase
-  include: ../install/uninstallSingle.yml
-  vars:
-    node: "{{ swap_out_node }}"
+  include: ../install/uninstallTasks.yml
 
 - name: Install new version of couchbase
-  include: ../install/installSingle.yml
-  vars:
-    node: "{{ swap_out_node }}"
-    VER: "{{ ver }}"
-    BUILD_NO: "{{ build_no }}"
-    FLAVOR: "{{ flavor }}"
+  include: ../install/installtasks.yml

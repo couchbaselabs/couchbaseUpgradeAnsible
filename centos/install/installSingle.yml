@@ -13,7 +13,7 @@
     build_pkg: "couchbase-server-enterprise-{{ver_no}}-{{build_no}}-centos6.x86_64.rpm"
     url_var: "{{base_url}}/{{build_no}}/{{build_pkg}}"
     build_url: "{{URL|default(url_var)}}"
-    rpm_path: "/tmp/couchbase.rpm"
+    rpm_path: "/tmp/{{ build_pkg }}.rpm"
   remote_user: root
   tasks:
     - include: installTasks.yml

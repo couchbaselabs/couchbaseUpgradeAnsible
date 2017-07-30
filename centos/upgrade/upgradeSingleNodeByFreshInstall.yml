@@ -12,4 +12,4 @@
   include: ../install/uninstallTasks.yml
 
 - name: Install new version of couchbase
-  include: ../install/installtasks.yml
+  include: ../install/installTasks.yml

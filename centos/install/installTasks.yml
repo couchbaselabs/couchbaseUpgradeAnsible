@@ -1,47 +1,40 @@
 ---
-- name: cleanup old pkg dirs
-  shell: rm {{rpm_path}} 2>/dev/null
-  ignore_errors: true
-- name: rm locks
-  shell: rm -f /var/lib/rpm/.rpm.lock
-  ignore_errors: true
-- name: stop rpm
-  shell: killall -9 rpm
-  ignore_errors: true
-- name: stop couchbase
-  shell: pkill 'couchbase'
-  ignore_errors: true
-- name: stop memcached
-  shell: pkill 'memcached'
-  ignore_errors: true
-- name: stop epmd
-  shell: pkill 'epmd'
-  ignore_errors: true
-- name: uninstall couchbase
-  yum: name=couchbase-server state=absent
-- name: rm opt dir
-  shell: rm -rf /opt/couchbase
-- name: rm data dir
-  shell: rm -rf /data/*
-- name: stop memcached
-  shell: pkill 'memcached'
-  ignore_errors: true
-- debug: msg="Download {{build_url}}"
-- name: download binary
-  get_url: url="{{build_url}}" dest="{{rpm_path}}"
-- name: install couchbase
-  yum: name="{{rpm_path}}"
-- name: alt start for centos 6
-  shell: /opt/couchbase/etc/couchbase_init.d start
-  ignore_errors: true
-  when: ansible_distribution_major_version == "6"
-- name: alt start for centos 7
-  service:
-    name: couchbase-server
-    state: started
-  when: ansible_distribution_major_version == "7"
-  ignore_errors: true
-- name: flush iptables
-  shell: iptables -F
-- name: wait for install done
-  wait_for: port=8091 delay=10
+  - name: cleanup old pkg dirs
+    shell: "rm {{rpm_path}} 2>/dev/null"
+    ignore_errors: True
+  - name: rm locks
+    shell: "rm -f /var/lib/rpm/.rpm.lock"
+    ignore_errors: True
+  - name: stop rpm
+    shell: "killall -9 rpm"
+    ignore_errors: True
+  - name: stop couchbase
+    shell: "ps aux | grep 'couchbase' | awk '{print $2}' | xargs kill -s 9"
+    ignore_errors: True
+  - name: stop memcached
+    shell: "ps aux | grep 'memcached' | awk '{print $2}' | xargs kill -s 9"
+    ignore_errors: True
+  - name: stop epmd
+    shell: "ps aux | grep 'epmd' | awk '{print $2}' | xargs kill -s 9"
+    ignore_errors: True
+  - name: uninstall couchbase
+    yum: name=couchbase-server state=absent
+  - name: rm opt dir
+    shell: "rm -rf /opt/couchbase"
+  - name: rm data dir
+    shell: "rm -rf /data/*"
+  - name: stop memcached
+    shell: "ps aux | grep 'memcached' | awk '{print $2}' | xargs kill -s 9"
+    ignore_errors: True
+  - debug: msg="Download {{build_url}}"
+  - name: download binary
+    get_url: url="{{build_url}}" dest="{{rpm_path}}"
+  - name: install couchbase
+    yum: name="{{rpm_path}}"
+  - name: alt start 
+    shell: /opt/couchbase/etc/couchbase_init.d start
+    ignore_errors: True
+  - name: flush iptables 
+    shell: iptables -F
+  - name: wait for install done
+    wait_for: port=8091 delay=10

@@ -29,11 +29,28 @@
   vars_files:
     - CouchbaseConstants.yml
   tasks:
+  - pause: seconds=10
   - name: Create indexes for travel-sample
     include: utils/createIndexes.yml
 
-  - name: Run loadGen
-    pause: seconds=10
+- hosts: localhost
+  vars:
+    loadgen_initial_properties_file: "{{ lookup('ini', 'initial_loadgen section=loadgenerator file=../testConstants.ini') }}"
+    loadgen_jar_location: "{{ lookup('ini', 'loadgen_jar_location section=loadgenerator file=../testConstants.ini') }}"
+    loadgen_jar: "{{ lookup('ini', 'loadgen_jar section=loadgenerator file=../testConstants.ini') }}"
+    loadgen_update_properties_file: "{{ lookup('ini', 'update_loadgen section=loadgenerator file=../testConstants.ini') }}"
+  tasks:
+  - name: Run Initial loadgen
+    shell: >
+      java -jar {{ loadgen_jar_location }}{{ loadgen_jar }} \ 
+      --loadgen-properties {{ loadgen_initial_properties_file }} \ 
+      --sample-data-file {{ loadgen_jar_location }}{{ loadgen_sample_data }} > /tmp/initial_loadgen.log
+   
+  - name: Run update loadgen
+    shell: >
+      java -jar {{ loadgen_jar_location }}{{ loadgen_jar }} \ 
+      --loadgen-properties {{ loadgen_update_properties_file }} \ 
+      --sample-data-file {{ loadgen_jar_location }}{{ loadgen_sample_data }} > /tmp/update_loadgen.log &
 
 - hosts: centosupgradenode[0]
   vars:

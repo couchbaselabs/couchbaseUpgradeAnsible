@@ -13,6 +13,9 @@
 
 - name: Set fact
   set_fact:
-    indexState: "{{ item.status }}"
+    indexState: "{{ inner_item.status }}"
   with_items: "{{ indexStatusResult.json.indexes }}"
-  when: item.index == indexName
+  when: inner_item.index == indexName
+  loop_control:
+    loop_var: inner_item
+    label: "{{ item.status }} "

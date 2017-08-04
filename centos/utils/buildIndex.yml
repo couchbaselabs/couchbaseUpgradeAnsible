@@ -11,6 +11,12 @@
     body: "statement={{ build_definition }}"
   register: build_result
   
+- name: Wait for Index to be built
+  include: waitForIndexBuild.yml
+  vars:
+    indexName: "{{ index_name }}"
+
+  
 - name: Pause for few seconds after creating index
   pause:
     seconds: 5

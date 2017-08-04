@@ -65,6 +65,11 @@
   ignore_errors: True
   when: result | succeeded and old_definition | search(with_defer_build)
   
+- name: Wait for Index to be built
+  include: waitForIndexBuild.yml
+  vars:
+    indexName: "{{ new_index_name }}"
+  
 - name: Pause for few seconds after creating index
   pause:
     seconds: 5

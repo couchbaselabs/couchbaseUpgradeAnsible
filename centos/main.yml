@@ -83,7 +83,9 @@
     BUILD_NO: "{{ lookup('ini', 'upgrade_build_no section=testConstants file=../testConstants.ini') | default(3358) }}"
     FLAVOR: "{{ lookup('ini', 'upgrade_flavor section=testConstants file=../testConstants.ini') | default('spock') }}"
 
+
 - name: run updated sdk application
+  hosts: localhost
   vars:
     loadgen_updated_properties_file: "{{ lookup('ini', 'updated_loadgen section=loadgenerator file=testConstants.ini') }}"
     loadgen_jar_location: "{{ lookup('ini', 'loadgen_jar_location section=loadgenerator file=testConstants.ini') }}"

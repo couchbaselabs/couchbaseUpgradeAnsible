@@ -1,12 +1,20 @@
 [centos]
-server1 ansible_host=172.23.106.30 couchbase_server_node_services=data
-server2 ansible_host=172.23.106.167 couchbase_server_node_services=data
-server3 ansible_host=172.23.106.118 couchbase_server_node_services=data
-server4 ansible_host=172.23.106.237 couchbase_server_node_services=index
-server5 ansible_host=172.23.107.20 couchbase_server_node_services=query
+server1 ansible_host=172.23.107.64 couchbase_server_node_services=data
+server2 ansible_host=172.23.106.97 couchbase_server_node_services=data
+#server3 ansible_host=172.23.106.98 couchbase_server_node_services=query
+#server4 ansible_host=172.23.121.214 couchbase_server_node_services=query
+server5 ansible_host=172.23.121.215 couchbase_server_node_services=index
+server6 ansible_host=172.23.107.118 couchbase_server_node_services=index
+server3 ansible_host=172.23.106.98 couchbase_server_node_services=query
+server4 ansible_host=172.23.121.214 couchbase_server_node_services=query
+#server7 ansible_host=172.23.121.213 couchbase_server_node_services=index
+#server8 ansible_host=172.23.107.7 couchbase_server_node_services=query
+#server9 ansible_host=172.23.108.166 couchbase_server_node_services=query
+#server10 ansible_host=172.23.109.129 couchbase_server_node_services=query
 
 [centosupgradenode]
-server6 ansible_host=172.23.107.21 couchbase_server_node_services=data
+server7 ansible_host=172.23.121.213 couchbase_server_node_services=data
+#server11 ansible_host=172.23.109.9 couchbase_server_node_services=data
 
 [couchbaseservers:children]
 centos

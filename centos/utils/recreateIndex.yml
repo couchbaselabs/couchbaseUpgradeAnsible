@@ -32,6 +32,7 @@
     user: "{{ couchbase_server_admin }}"
     password: "{{ couchbase_server_password }}"
     body: "statement={{ new_definition_with_host }}"
+    timeout: 250
   register: result
   #ignore_errors: True
 
@@ -59,8 +60,9 @@
     user: "{{ couchbase_server_admin }}"
     password: "{{ couchbase_server_password }}"
     body: "statement={{ build_definition }}"
+    timeout: 250
   register: build_result
-  #ignore_errors: True
+  ignore_errors: True
   when: result | succeeded and old_definition | search(with_defer_build)
   
 - name: Pause for few seconds after creating index

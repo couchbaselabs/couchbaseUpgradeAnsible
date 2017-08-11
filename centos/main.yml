@@ -23,7 +23,7 @@
   vars:
     NODE: "centos[0]"
     bucket_name: "travel-sample"
-    bucket_ramsize: 512
+    bucket_ramsize: 2000
 
 - hosts: centos[0]
   vars_files:
@@ -35,22 +35,23 @@
 
 - hosts: localhost
   vars:
-    loadgen_initial_properties_file: "{{ lookup('ini', 'initial_loadgen section=loadgenerator file=../testConstants.ini') }}"
-    loadgen_jar_location: "{{ lookup('ini', 'loadgen_jar_location section=loadgenerator file=../testConstants.ini') }}"
-    loadgen_jar: "{{ lookup('ini', 'loadgen_jar section=loadgenerator file=../testConstants.ini') }}"
-    loadgen_update_properties_file: "{{ lookup('ini', 'update_loadgen section=loadgenerator file=../testConstants.ini') }}"
+    loadgen_initial_properties_file: "{{ lookup('ini', 'initial_loadgen section=loadgenerator file=testConstants.ini') }}"
+    loadgen_jar_location: "{{ lookup('ini', 'loadgen_jar_location section=loadgenerator file=testConstants.ini') }}"
+    loadgen_jar: "{{ lookup('ini', 'loadgen_jar section=loadgenerator file=testConstants.ini') }}"
+    loadgen_sample_data: "{{lookup('ini', 'loadgen_sample_data section=loadgenerator file=testConstants.ini') }}"
+    loadgen_update_properties_file: "{{ lookup('ini', 'update_loadgen section=loadgenerator file=testConstants.ini') }}"
   tasks:
   - name: Run Initial loadgen
     shell: >
       java -jar {{ loadgen_jar_location }}{{ loadgen_jar }} \ 
       --loadgen-properties {{ loadgen_initial_properties_file }} \ 
-      --sample-data-file {{ loadgen_jar_location }}{{ loadgen_sample_data }} > /tmp/initial_loadgen.log
+      --sample-data-file {{ loadgen_jar_location }}{{ loadgen_sample_data }} > /tmp/initial_loadgen.log 2>&1
    
   - name: Run update loadgen
     shell: >
       java -jar {{ loadgen_jar_location }}{{ loadgen_jar }} \ 
       --loadgen-properties {{ loadgen_update_properties_file }} \ 
-      --sample-data-file {{ loadgen_jar_location }}{{ loadgen_sample_data }} > /tmp/update_loadgen.log &
+      --sample-data-file {{ loadgen_jar_location }}{{ loadgen_sample_data }} > /tmp/update_loadgen.log 2>&1  &
 
 - hosts: centosupgradenode[0]
   vars:
@@ -81,3 +82,19 @@
     VER: "{{ lookup('ini', 'upgrade_version section=testConstants file=../testConstants.ini') | default('5.0.0') }}"
     BUILD_NO: "{{ lookup('ini', 'upgrade_build_no section=testConstants file=../testConstants.ini') | default(3358) }}"
     FLAVOR: "{{ lookup('ini', 'upgrade_flavor section=testConstants file=../testConstants.ini') | default('spock') }}"
+
+
+- name: run updated sdk application
+  hosts: localhost
+  vars:
+    loadgen_updated_properties_file: "{{ lookup('ini', 'updated_loadgen section=loadgenerator file=testConstants.ini') }}"
+    loadgen_jar_location: "{{ lookup('ini', 'loadgen_jar_location section=loadgenerator file=testConstants.ini') }}"
+    loadgen_jar: "{{ lookup('ini', 'updated_loadgen_jar section=loadgenerator file=testConstants.ini') }}"
+    loadgen_sample_data: "{{lookup('ini', 'loadgen_sample_data section=loadgenerator file=testConstants.ini') }}"
+    loadgen_update_properties_file: "{{ lookup('ini', 'update_loadgen section=loadgenerator file=testConstants.ini') }}"
+  tasks:
+  - name: Run loadgen
+    shell: >
+      java -jar {{ loadgen_jar_location }}{{ loadgen_jar }} \
+      --loadgen-properties {{ loadgen_updated_properties_file }} \
+      --sample-data-file {{ loadgen_jar_location }}{{ loadgen_sample_data }} > /tmp/updated_loadgen.log 2>&1 &

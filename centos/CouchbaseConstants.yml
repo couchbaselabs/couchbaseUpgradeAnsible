@@ -2,7 +2,7 @@
 couchbase_server_edition: "enterprise"
 couchbase_server_admin: "Administrator"
 couchbase_server_password: "password"
-couchbase_server_ram: 1024
+couchbase_server_ram: 3000
 couchbase_server_admin_port: 8091
 couchbase_server_epmd_port: 4369
 couchbase_server_admin_ssl_port: 18091

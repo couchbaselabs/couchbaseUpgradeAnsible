@@ -1,0 +1,21 @@
+---
+- name: Get index status
+  uri:
+    url: http://{{ ansible_host }}:8091/indexStatus
+    method: GET
+    user: "{{ couchbase_server_admin }}"
+    password: "{{ couchbase_server_password }}"
+    force_basic_auth: yes
+    return_content: yes
+    body_format: json
+    timeout: 60
+  register: indexStatusResult
+
+- name: Set fact
+  set_fact:
+    indexState: "{{ inner_item.status }}"
+  with_items: "{{ indexStatusResult.json.indexes }}"
+  when: inner_item.index == indexName
+  loop_control:
+    loop_var: inner_item
+    label: "{{ item.status }} "
